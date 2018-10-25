@@ -55,6 +55,7 @@ type Metadata struct {
 	Author      string
 	MinReadTime int
 	MaxReadTime int
+	AMPURL      string
 }
 
 // Article is the content of an URL
@@ -109,6 +110,24 @@ func prepDocument(doc *goquery.Document) {
 		html, _ := font.Html()
 		font.ReplaceWithHtml("<span>" + html + "</span>")
 	})
+}
+
+func getAMPURL(doc *goquery.Document) string {
+	var amphtml string
+	doc.Find("link").Each(func(_ int, sel *goquery.Selection) {
+		rellink, ok := sel.Attr("rel")
+		if !ok {
+			return
+		}
+
+		if rellink != "amphtml" {
+			return
+		}
+
+		v, _ := sel.Attr("href")
+		amphtml = v
+	})
+	return amphtml
 }
 
 // getArticleTitle fetchs the article title
@@ -264,6 +283,9 @@ func getArticleMetadata(doc *goquery.Document) Metadata {
 	// Clean up the metadata
 	metadata.Title = normalizeText(metadata.Title)
 	metadata.Excerpt = normalizeText(metadata.Excerpt)
+
+	// set ampurl if any
+	metadata.AMPURL = getAMPURL(doc)
 
 	return metadata
 }
