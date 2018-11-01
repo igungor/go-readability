@@ -19,6 +19,10 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+const (
+	defaultUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+)
+
 var (
 	dataTableAttr          = "XXX-DATA-TABLE"
 	rxSpaces               = regexp.MustCompile(`(?is)\s{2,}|\n+`)
@@ -1144,7 +1148,13 @@ func estimateReadTime(articleContent *goquery.Selection) (int, int) {
 func FromURL(url *nurl.URL, timeout time.Duration) (Article, error) {
 	// Fetch page from URL
 	client := &http.Client{Timeout: timeout}
-	resp, err := client.Get(url.String())
+	req, err := http.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return Article{}, err
+	}
+	req.Header.Set("User-Agent", defaultUserAgent)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return Article{}, err
 	}
