@@ -124,9 +124,10 @@ func Test_getArticleTitle(t *testing.T) {
 func Test_getArticleMetadata(t *testing.T) {
 	tests := make(map[string]Metadata)
 	tests["test/getArticleMetadata1.html"] = Metadata{
-		Title:   "Just-released Minecraft exploit makes it easy to crash game servers",
-		Image:   "http://cdn.arstechnica.net/wp-content/uploads/2015/04/server-crash-640x426.jpg",
-		Excerpt: "Two-year-old bug exposes thousands of servers to crippling attack.",
+		Title:         "Just-released Minecraft exploit makes it easy to crash game servers",
+		Image:         "http://cdn.arstechnica.net/wp-content/uploads/2015/04/server-crash-640x426.jpg",
+		Excerpt:       "Two-year-old bug exposes thousands of servers to crippling attack.",
+		PublishedDate: {},
 	}
 	tests["test/getArticleMetadata2.html"] = Metadata{
 		Title: "Daring Fireball: Colophon",

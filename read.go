@@ -53,13 +53,18 @@ type readability struct {
 
 // Metadata is metadata of an article
 type Metadata struct {
-	Title       string
-	Image       string
-	Excerpt     string
-	Author      string
-	MinReadTime int
-	MaxReadTime int
-	AMPURL      string
+	Title         string
+	Image         string
+	Excerpt       string
+	Author        string
+	MinReadTime   int
+	MaxReadTime   int
+	AMPURL        string
+	CanonicalURL  string
+	PublishedDate struct {
+		Raw    string
+		Parsed time.Time
+	}
 }
 
 // Article is the content of an URL
@@ -132,6 +137,24 @@ func getAMPURL(doc *goquery.Document) string {
 		amphtml = v
 	})
 	return amphtml
+}
+
+func getCanonicalURL(doc *goquery.Document) string {
+	var canonical string
+	doc.Find("link").Each(func(_ int, sel *goquery.Selection) {
+		rellink, ok := sel.Attr("rel")
+		if !ok {
+			return
+		}
+
+		if rellink != "canonical" {
+			return
+		}
+
+		v, _ := sel.Attr("href")
+		canonical = v
+	})
+	return canonical
 }
 
 // getArticleTitle fetchs the article title
@@ -244,8 +267,11 @@ func getArticleMetadata(doc *goquery.Document) Metadata {
 			return
 		}
 
+		// fetch opengraph
 		if metaProperty == "og:description" ||
 			metaProperty == "og:image" ||
+			metaProperty == "og:pubdate" ||
+			metaProperty == "og:url" ||
 			metaProperty == "og:title" {
 			if _, exist := mapAttribute[metaProperty]; !exist {
 				mapAttribute[metaProperty] = metaContent
@@ -284,12 +310,22 @@ func getArticleMetadata(doc *goquery.Document) Metadata {
 		}
 	}
 
+	// Set published date
+	if v, exist := mapAttribute["og:pubdate"]; exist {
+		metadata.PublishedDate.Raw = v
+	}
+
 	// Clean up the metadata
 	metadata.Title = normalizeText(metadata.Title)
 	metadata.Excerpt = normalizeText(metadata.Excerpt)
 
-	// set ampurl if any
+	// Set AMP URL
 	metadata.AMPURL = getAMPURL(doc)
+
+	// Set Canonical URL. Occasionaly RSS feeds include a special link that
+	// expires in a couple of weeks. Find the canonical links that are not
+	// expired.
+	metadata.CanonicalURL = getCanonicalURL(doc)
 
 	return metadata
 }
