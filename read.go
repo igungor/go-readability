@@ -313,6 +313,10 @@ func getArticleMetadata(doc *goquery.Document) Metadata {
 	// Set published date
 	if v, exist := mapAttribute["og:pubdate"]; exist {
 		metadata.PublishedDate.Raw = v
+		date, err := parseDate(v)
+		if err == nil {
+			metadata.PublishedDate.Parsed = date
+		}
 	}
 
 	// Clean up the metadata
