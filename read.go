@@ -121,7 +121,7 @@ func prepDocument(doc *goquery.Document) {
 	})
 }
 
-func getAMPURL(doc *goquery.Document) string {
+func getAMPURL(doc *goquery.Document, base *nurl.URL) string {
 	var amphtml string
 	doc.Find("link").Each(func(_ int, sel *goquery.Selection) {
 		rellink, ok := sel.Attr("rel")
@@ -134,7 +134,7 @@ func getAMPURL(doc *goquery.Document) string {
 		}
 
 		v, _ := sel.Attr("href")
-		amphtml = v
+		amphtml = toAbsoluteURI(v, base)
 	})
 	return amphtml
 }
@@ -236,7 +236,7 @@ func getArticleTitle(doc *goquery.Document) string {
 }
 
 // getArticleMetadata attempts to get excerpt and byline metadata for the article.
-func getArticleMetadata(doc *goquery.Document) Metadata {
+func getArticleMetadata(doc *goquery.Document, base *nurl.URL) Metadata {
 	metadata := Metadata{}
 	mapAttribute := make(map[string]string)
 
@@ -324,7 +324,7 @@ func getArticleMetadata(doc *goquery.Document) Metadata {
 	metadata.Excerpt = normalizeText(metadata.Excerpt)
 
 	// Set AMP URL
-	metadata.AMPURL = getAMPURL(doc)
+	metadata.AMPURL = getAMPURL(doc, base)
 
 	// Set Canonical URL. Occasionaly RSS feeds include a special link that
 	// expires in a couple of weeks. Find the canonical links that are not
@@ -1227,7 +1227,7 @@ func FromReader(reader io.Reader, url *nurl.URL) (Article, error) {
 	prepDocument(doc)
 
 	// Get metadata and article
-	metadata := getArticleMetadata(doc)
+	metadata := getArticleMetadata(doc, url)
 	articleContent, author := grabArticle(doc, metadata.Title)
 	if articleContent == nil {
 		return Article{}, fmt.Errorf("No article body detected")
