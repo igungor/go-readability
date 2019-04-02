@@ -282,9 +282,9 @@ func getArticleMetadata(doc *goquery.Document, base *nurl.URL) Metadata {
 
 	// Set final image
 	if _, exist := mapAttribute["og:image"]; exist {
-		metadata.Image = mapAttribute["og:image"]
+		metadata.Image = toAbsoluteURI(mapAttribute["og:image"], base)
 	} else if _, exist := mapAttribute["twitter:image"]; exist {
-		metadata.Image = mapAttribute["twitter:image"]
+		metadata.Image = toAbsoluteURI(mapAttribute["twitter:image"], base)
 	}
 
 	if metadata.Image != "" && strings.HasPrefix(metadata.Image, "//") {
